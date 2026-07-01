@@ -29,9 +29,6 @@ Partial Class frmKlimaatatlas
         Me.btnConfigFile = New System.Windows.Forms.Button()
         Me.txtConfigFile = New System.Windows.Forms.TextBox()
         Me.lblConfigFile = New System.Windows.Forms.Label()
-        Me.btnDatabase = New System.Windows.Forms.Button()
-        Me.lblDatabase = New System.Windows.Forms.Label()
-        Me.txtDatabase = New System.Windows.Forms.TextBox()
         Me.dlgOpenFile = New System.Windows.Forms.OpenFileDialog()
         Me.MenuStrip1 = New System.Windows.Forms.MenuStrip()
         Me.ToolsToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem()
@@ -86,7 +83,7 @@ Partial Class frmKlimaatatlas
         'btnConfigFile
         '
         Me.btnConfigFile.Anchor = CType((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
-        Me.btnConfigFile.Location = New System.Drawing.Point(1214, 44)
+        Me.btnConfigFile.Location = New System.Drawing.Point(1215, 20)
         Me.btnConfigFile.Name = "btnConfigFile"
         Me.btnConfigFile.Size = New System.Drawing.Size(27, 26)
         Me.btnConfigFile.TabIndex = 5
@@ -97,7 +94,7 @@ Partial Class frmKlimaatatlas
         '
         Me.txtConfigFile.Anchor = CType(((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Left) _
             Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
-        Me.txtConfigFile.Location = New System.Drawing.Point(123, 45)
+        Me.txtConfigFile.Location = New System.Drawing.Point(124, 21)
         Me.txtConfigFile.Name = "txtConfigFile"
         Me.txtConfigFile.Size = New System.Drawing.Size(1081, 22)
         Me.txtConfigFile.TabIndex = 4
@@ -105,39 +102,11 @@ Partial Class frmKlimaatatlas
         'lblConfigFile
         '
         Me.lblConfigFile.AutoSize = True
-        Me.lblConfigFile.Location = New System.Drawing.Point(7, 48)
+        Me.lblConfigFile.Location = New System.Drawing.Point(8, 24)
         Me.lblConfigFile.Name = "lblConfigFile"
         Me.lblConfigFile.Size = New System.Drawing.Size(68, 16)
         Me.lblConfigFile.TabIndex = 3
         Me.lblConfigFile.Text = "Config file:"
-        '
-        'btnDatabase
-        '
-        Me.btnDatabase.Anchor = CType((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
-        Me.btnDatabase.Location = New System.Drawing.Point(1214, 12)
-        Me.btnDatabase.Name = "btnDatabase"
-        Me.btnDatabase.Size = New System.Drawing.Size(27, 26)
-        Me.btnDatabase.TabIndex = 2
-        Me.btnDatabase.Text = ".."
-        Me.btnDatabase.UseVisualStyleBackColor = True
-        '
-        'lblDatabase
-        '
-        Me.lblDatabase.AutoSize = True
-        Me.lblDatabase.Location = New System.Drawing.Point(7, 16)
-        Me.lblDatabase.Name = "lblDatabase"
-        Me.lblDatabase.Size = New System.Drawing.Size(90, 16)
-        Me.lblDatabase.TabIndex = 1
-        Me.lblDatabase.Text = "Database file:"
-        '
-        'txtDatabase
-        '
-        Me.txtDatabase.Anchor = CType(((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Left) _
-            Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
-        Me.txtDatabase.Location = New System.Drawing.Point(123, 13)
-        Me.txtDatabase.Name = "txtDatabase"
-        Me.txtDatabase.Size = New System.Drawing.Size(1081, 22)
-        Me.txtDatabase.TabIndex = 0
         '
         'dlgOpenFile
         '
@@ -215,9 +184,6 @@ Partial Class frmKlimaatatlas
         '
         'tabSettings
         '
-        Me.tabSettings.Controls.Add(Me.txtDatabase)
-        Me.tabSettings.Controls.Add(Me.lblDatabase)
-        Me.tabSettings.Controls.Add(Me.btnDatabase)
         Me.tabSettings.Controls.Add(Me.btnConfigFile)
         Me.tabSettings.Controls.Add(Me.lblConfigFile)
         Me.tabSettings.Controls.Add(Me.txtConfigFile)
@@ -236,7 +202,7 @@ Partial Class frmKlimaatatlas
         Me.tabMaatlatten.Location = New System.Drawing.Point(4, 25)
         Me.tabMaatlatten.Name = "tabMaatlatten"
         Me.tabMaatlatten.Padding = New System.Windows.Forms.Padding(3)
-        Me.tabMaatlatten.Size = New System.Drawing.Size(1249, 448)
+        Me.tabMaatlatten.Size = New System.Drawing.Size(1249, 434)
         Me.tabMaatlatten.TabIndex = 1
         Me.tabMaatlatten.Text = "Maatlatten"
         Me.tabMaatlatten.UseVisualStyleBackColor = True
@@ -262,7 +228,7 @@ Partial Class frmKlimaatatlas
         '
         Me.tabRekenregels.Location = New System.Drawing.Point(4, 25)
         Me.tabRekenregels.Name = "tabRekenregels"
-        Me.tabRekenregels.Size = New System.Drawing.Size(1249, 448)
+        Me.tabRekenregels.Size = New System.Drawing.Size(1249, 434)
         Me.tabRekenregels.TabIndex = 2
         Me.tabRekenregels.Text = "Rekenregels"
         Me.tabRekenregels.UseVisualStyleBackColor = True
@@ -300,9 +266,6 @@ Partial Class frmKlimaatatlas
     Friend WithEvents btnConfigFile As Button
     Friend WithEvents txtConfigFile As TextBox
     Friend WithEvents lblConfigFile As Label
-    Friend WithEvents btnDatabase As Button
-    Friend WithEvents lblDatabase As Label
-    Friend WithEvents txtDatabase As TextBox
     Friend WithEvents dlgOpenFile As OpenFileDialog
     Friend WithEvents MenuStrip1 As MenuStrip
     Friend WithEvents ToolsToolStripMenuItem As ToolStripMenuItem

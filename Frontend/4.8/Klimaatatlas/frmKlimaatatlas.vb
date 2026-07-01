@@ -10,12 +10,13 @@ Public Class frmKlimaatatlas
         Klimaatatlas = New clsKlimaatatlas()
         Klimaatatlas.SetProgressBar(prProgress, lblProgress)
 
-        txtDatabase.Text = My.Settings.Database
+        'txtDatabase.Text = My.Settings.Database
         txtConfigFile.Text = My.Settings.Configfile
 
         Initialize()
 
-        If System.IO.File.Exists(txtDatabase.Text) AndAlso System.IO.File.Exists(txtConfigFile.Text) Then
+        '' System.IO.File.Exists(txtDatabase.Text) AndAlso 
+        If System.IO.File.Exists(txtConfigFile.Text) Then
             ReadConfiguration()
         End If
 
@@ -66,10 +67,10 @@ Public Class frmKlimaatatlas
     Private Sub Initialize()
         'set the database connection, read the configuration file and start processing each rule
         Klimaatatlas.SetProgressBar(prProgress, lblProgress)
-        If System.IO.File.Exists(txtDatabase.Text) Then
-            Klimaatatlas.SetDatabaseConnection(txtDatabase.Text)
-            Klimaatatlas.UpgradeDatabase()
-        End If
+        'If System.IO.File.Exists(txtDatabase.Text) Then
+        '    Klimaatatlas.SetDatabaseConnection(txtDatabase.Text)
+        '    Klimaatatlas.UpgradeDatabase()
+        'End If
     End Sub
 
     Private Sub ReadConfiguration()
@@ -88,7 +89,7 @@ Public Class frmKlimaatatlas
         Klimaatatlas.Log = New clsLog
 
         'store our paths for the next time
-        My.Settings.Database = txtDatabase.Text
+        'My.Settings.Database = txtDatabase.Text
         My.Settings.Configfile = txtConfigFile.Text
         My.Settings.Save()
 
@@ -118,11 +119,11 @@ Public Class frmKlimaatatlas
 
     End Sub
 
-    Private Sub btnDatabase_Click(sender As Object, e As EventArgs) Handles btnDatabase.Click
+    Private Sub btnDatabase_Click(sender As Object, e As EventArgs)
         dlgOpenFile.Filter = "SQLite|*.db"
         Dim res As DialogResult = dlgOpenFile.ShowDialog
         If res = DialogResult.OK Then
-            txtDatabase.Text = dlgOpenFile.FileName
+            'txtDatabase.Text = dlgOpenFile.FileName
             Klimaatatlas.SetDatabaseConnection(dlgOpenFile.FileName) ' As New clsKlimaatatlas(jsonPath, connectionString, configContent)
             Klimaatatlas.UpgradeDatabase()
         End If

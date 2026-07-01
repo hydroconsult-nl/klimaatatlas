@@ -1,0 +1,304 @@
+{
+  "scenarios": ["K2023", "K2050", "K2100"],
+  "features_dataset": {
+    "_comment": "this attribute describes the water area polygons",
+    "id": "watervlakken",
+    "data_type": "polygons",
+    "storage_type": "geopackage",
+    "path": "c:\\SYNC\\PROJECTEN\\H3114.Wateratlas.Rijnland\\99.Implementatie4\\Watervlakken_Plus7.gpkg",
+	"tablename":"Watervlakken_Plus7",
+    "fields": [
+      {"fieldtype": "id", "datatype":"SQLITETEXT", "fieldname": "CODE"},
+      {"fieldtype": "featureidx", "datatype":"SQLITEINT", "fieldname": "FEATUREIDX"},
+      {"fieldtype": "depth", "datatype":"SQLITEREAL", "fieldname": "WATERDIEPTE"},
+      {"fieldtype": "width", "datatype":"SQLITEREAL", "fieldname": "BREEDTE"},
+      {"fieldtype": "deadend", "datatype":"SQLITETEXT", "fieldname": "doodlopend"},
+      {"fieldtype": "watertype", "datatype":"SQLITETEXT", "fieldname": "type_water"},
+      {"fieldtype": "temperature", "datatype":"SQLITEREAL", "fieldname": "Tex23"},
+      {"fieldtype": "temperature", "datatype":"SQLITEREAL", "fieldname": "Tex85"}
+    ]
+  },
+  "rules": [
+	{
+	  "name": "dl",
+	  "benchmarks":[
+		{
+			"name":"Tepi",
+			"comment":"maximumtemperatuur toplaag, afhankelijk van klimaat en diepte.",
+			"constants": [
+				{"scenario":"K2023", "value":"25"},
+				{"scenario":"K2050", "value":"27"},
+				{"scenario":"K2100", "value":"29"}				
+			],
+			"classification":"continuous",
+			"filter":"[waterdiepte]>=3",
+			"valuesRange": [{"value":15,"verdict":0},{"value":27,"verdict":1},{"value":35,"verdict":0}]
+		},
+		{
+			"name":"Nepi",
+			"comment":"stikstof in de toplaag, afhankelijk van klimaat en diepte.",
+			"fieldname": [
+				{"scenario":"K2023", "field":"K2023_Nt_50pct"},
+				{"scenario":"K2050", "field":"K2050_Nt_50pct"},
+				{"scenario":"K2100", "field":"K2100_Nt_50pct"}				
+			],
+			"classification":"continuous", 
+			"filter":"[waterdiepte]>=3",
+			"valuesRange": [{"value":0,"verdict":0},{"value":15,"verdict":1}],
+			"nullValue":0
+		},
+		{
+			"name":"Pepi",
+			"comment":"fosfor in de toplaag, afhankelijk van klimaat en diepte.",
+			"fieldname": [
+				{"scenario":"K2023", "field":"K2023_Pt_50pct"},
+				{"scenario":"K2050", "field":"K2050_Pt_50pct"},
+				{"scenario":"K2100", "field":"K2100_Pt_50pct"}				
+			],
+			"classification":"continuous", 
+			"filter":"[waterdiepte]>=3",
+			"valuesRange": [{"value":0,"verdict":0},{"value":1.5,"verdict":1}],
+			"nullValue":0
+		}
+	  ],
+      "resultsfield": "dldef",
+      "components": [
+        {"benchmark": "Tepi", "weight": 1, "resultsfield": "Tepi", "comment":"Temperatuur toplaag."},
+        {"benchmark": "Nepi", "weight": 1, "resultsfield": "Nepi", "comment":"Stikstof toplaag."},
+        {"benchmark": "Pepi", "weight": 1, "resultsfield": "Pepi", "comment":"Fosfor toplaag."}
+      ]
+	},  
+    {
+      "name": "biomassa",
+	  "benchmarks":[
+		{
+			"name":"Texceedance",
+			"comment":"de watertemperatuur die gemiddeld één week per jaar wordt overschreden.",
+			"fieldname":[
+				{"scenario":"K2023", "field":"Tex23"},
+				{"scenario":"K2050", "field":"Tex85"},		
+				{"scenario":"K2100", "field":"Tex85"}			
+			],
+			"classification":"continuous", 
+			"valuesRange": [{"value":15,"verdict":0},{"value":30,"verdict":1},{"value":45,"verdict":0}]
+		},
+		{
+			"name":"vermesting_N",
+			"comment":"de mate van vermesting met stikstof.",
+			"fieldname":[
+				{"scenario":"K2023", "field":"K2023_Nt_50pct"},
+				{"scenario":"K2050", "field":"K2050_Nt_50pct"},
+				{"scenario":"K2100", "field":"K2100_Nt_50pct"}			
+			],
+			"classification":"continuous", 
+			"valuesRange": [{"value":0,"verdict":0},{"value":15,"verdict":1}]
+		},
+		{
+			"name":"vermesting_P",
+			"comment":"de mate van vermesting met fosfor.",
+			"fieldname":[
+				{"scenario":"K2023", "field":"K2023_Pt_50pct"},
+				{"scenario":"K2050", "field":"K2050_Pt_50pct"},
+				{"scenario":"K2100", "field":"K2100_Pt_50pct"}			
+			],
+			"classification":"continuous", 
+			"valuesRange": [{"value":0,"verdict":0},{"value":1.5,"verdict":1}]
+		},
+		{
+			"name": "max_biomassa",
+			"comment":"maximale biomassa als functie van de diepte van het waterlichaam.",
+			"fieldname":[
+				{"scenario":"K2023", "field":"waterdiepte", "transformation":"52.185x^2 - 524.98x + 1422.2"},
+				{"scenario":"K2050", "field":"waterdiepte", "transformation":"52.185x^2 - 524.98x + 1422.2"},
+				{"scenario":"K2100", "field":"waterdiepte", "transformation":"52.185x^2 - 524.98x + 1422.2"},				
+				{"scenario":"Test", "field":"waterdiepte", "transformation":"1683.6*EXP(-0.578*x)"}			
+			],
+			"classification": "continuous",
+			"valuesRange": [{"value":0,"verdict":0},{"value":1400,"verdict":1}]
+		}
+	],
+      "resultsfield": "bm",
+      "components": [
+        {"benchmark": "Texceedance", "weight": 1, "resultsfield": "bm_Tex"},
+        {"benchmark": "vermesting_N", "weight": 0.5, "resultsfield": "bm_mestN"},
+        {"benchmark": "vermesting_P", "weight": 0.5, "resultsfield": "bm_mestP"},
+        {"benchmark": "max_biomassa", "weight": 1, "resultsfield": "bm_max"}
+      ]
+    },
+    {
+      "name": "kroos",
+	  "benchmarks":[
+		{
+			"name": "doodlopend",
+			"comment":"of het waterlichaam doodlopend is.",
+			"fieldname":[
+				{"scenario":"K2023", "field":"doodlopend"},
+				{"scenario":"K2050", "field":"doodlopend"},
+				{"scenario":"K2100", "field":"doodlopend"}
+			],
+			"classification": "discrete",
+			"classes": [
+				{"name": "nee", "value": 0}, 
+				{"name": "Null", "value": 0}, 
+				{"name": "ja", "value": 1}				
+			]
+		},
+		{
+			"name": "diepte",
+			"comment":"diepte van het waterlichaam.",
+			"fieldname":[
+				{"scenario":"K2023", "field":"waterdiepte"},
+				{"scenario":"K2050", "field":"waterdiepte"},
+				{"scenario":"K2100", "field":"waterdiepte"}			
+			],
+			"classification": "continuous",
+			"valuesRange": [{"value":0,"verdict":1},{"value":1.5,"verdict":0}]
+		},
+		{
+			"name": "breedte",
+			"comment":"breedte van het waterlichaam.",
+			"fieldname":[
+				{"scenario":"K2023", "field":"Breedte"},
+				{"scenario":"K2050", "field":"Breedte"},
+				{"scenario":"K2100", "field":"Breedte"}			
+			],
+			"classification": "continuous",
+			"valuesRange": [{"value":5,"verdict":1},{"value":15,"verdict":0}]
+		},
+		{
+			"name":"Texceedance",
+			"comment":"de watertemperatuur die gemiddeld één week per jaar wordt overschreden.",
+			"fieldname":[
+				{"scenario":"K2023", "field":"Tex23"},
+				{"scenario":"K2050", "field":"Tex85"},
+				{"scenario":"K2100", "field":"Tex85"}			
+			],
+			"classification":"continuous", 
+			"valuesRange": [{"value":15,"verdict":0},{"value":27,"verdict":1},{"value":35,"verdict":0}]
+		}
+	],
+      "resultsfield": "kroos",
+      "components": [
+        {"benchmark": "doodlopend", "weight": 1, "resultsfield": "kroos_doodl", "comment": "kroos, aandeel doodlopendheid watergang"},
+        {"benchmark": "breedte", "weight": 1, "resultsfield": "kroos_br", "comment": "kroos, aandeel breedte watergang"},
+        {"benchmark": "Texceedance", "weight": 1, "resultsfield": "kroos_Tex", "comment": "kroos, aandeel overschrijdingstemperatuur"}
+      ]
+    },
+    {
+      "name": "oxy",
+	  "benchmarks":[
+		{
+			"name": "Texceedance",
+			"comment":"de watertemperatuur die gemiddeld één week per jaar wordt overschreden.",
+			"fieldname":[
+				{"scenario":"K2023", "field":"Tex23"},
+				{"scenario":"K2050", "field":"Tex85"},
+				{"scenario":"K2100", "field":"Tex85"}
+			],
+			"classification":"continuous", 
+			"valuesRange": [{"value":15,"verdict":0},{"value":28,"verdict":0.5},{"value":35,"verdict":1}]
+		},
+		{
+			"name": "overstortfractie",
+			"comment":"fractie overstort.",
+			"fieldname":[
+				{"scenario":"K2023", "field":"K2023_Nt_vov_50pct"},
+				{"scenario":"K2050", "field":"K2050_Nt_vov_50pct"},
+				{"scenario":"K2100", "field":"K2100_Nt_vov_50pct"}			
+			],
+			"classification": "continuous",
+			"valuesRange": [{"value":0,"verdict":0},{"value":15,"verdict":1}]
+		},
+		{
+			"name": "bodemtype",
+			"comment":"overwegende bodemsoort: klei, zand of veen.",
+			"fieldname":[
+				{"scenario":"K2023", "field":"BODEMKLASS"},
+				{"scenario":"K2050", "field":"BODEMKLASS"},
+				{"scenario":"K2100", "field":"BODEMKLASS"}			
+			],
+			"classification": "discrete",
+			"classes": [
+				{"name": "zand", "value": 0}, 
+				{"name": "klei", "value": 0.5},
+				{"name": "veen", "value": 1},
+				{"name": "Null", "value": 0.5} 
+			]
+		},
+		{
+			"name":"vermesting_N",
+			"comment":"de mate van vermesting met stikstof.",
+			"fieldname":[
+				{"scenario":"K2023", "field":"K2023_Nt_50pct"},
+				{"scenario":"K2050", "field":"K2050_Nt_50pct"},
+				{"scenario":"K2100", "field":"K2100_Nt_50pct"}			
+			],
+			"classification":"continuous", 
+			"valuesRange": [{"value":0,"verdict":0},{"value":15,"verdict":1}]
+		},
+		{
+			"name":"vermesting_P",
+			"comment":"de mate van vermesting met fosfor.",
+			"fieldname":[
+				{"scenario":"K2023", "field":"K2023_Pt_50pct"},
+				{"scenario":"K2050", "field":"K2050_Pt_50pct"},
+				{"scenario":"K2100", "field":"K2100_Pt_50pct"}			
+			],
+			"classification":"continuous", 
+			"valuesRange": [{"value":0,"verdict":0},{"value":1.5,"verdict":1}]
+		},
+		{
+			"name": "diepte",
+			"comment":"diepte van het waterlichaam.",
+			"fieldname":[
+				{"scenario":"K2023", "field":"waterdiepte"},
+				{"scenario":"K2050", "field":"waterdiepte"},
+				{"scenario":"K2100", "field":"waterdiepte"}			
+			],
+			"classification": "continuous",
+			"valuesRange": [{"value":0,"verdict":1},{"value":1.5,"verdict":0}]
+		},
+		{
+			"name": "doodlopend",
+			"comment":"of het waterlichaam doodlopend is.",
+			"fieldname":[
+				{"scenario":"K2023", "field":"doodlopend"},
+				{"scenario":"K2050", "field":"doodlopend"},
+				{"scenario":"K2100", "field":"doodlopend"}
+			],
+			"classification": "discrete",
+			"classes": [
+				{"name": "nee", "value": 0}, 
+				{"name": "Null", "value": 0}, 
+				{"name": "ja", "value": 1}
+			]
+		},
+		{
+			"name": "verblijftijd",
+			"comment":"mediaan van de verblijftijd van het water in seconden.",
+			"fieldname":[
+				{"scenario":"K2023", "field":"K2023_ResTim_50pct"},
+				{"scenario":"K2050", "field":"K2050_ResTim_50pct"},
+				{"scenario":"K2100", "field":"K2100_ResTim_50pct"}
+			],
+			"classification": "continuous",
+			"valuesRange": [{"value":1E6,"verdict":0},{"value":1E8,"verdict":1}]
+		}
+	],
+      "resultsfield": "o2def",
+      "components": [
+        {"benchmark": "Texceedance", "weight": 1, "resultsfield": "o2Tex", "comment":"zuurstoftekort, aandeel overschrijdingstemperatuur."},
+        {"benchmark": "overstortfractie", "weight": 1, "resultsfield": "o2vov", "comment":"zuurstoftekort, aandeel riooloverstort."},
+        {"benchmark": "bodemtype", "weight": 1, "resultsfield": "o2bt", "comment":"zuurstoftekort, aandeel bodemtype."},
+        {"benchmark": "vermesting_N", "weight": 0.5, "resultsfield": "o2N", "comment":"zuurstoftekort, aandeel stikstof."},
+        {"benchmark": "vermesting_P", "weight": 0.5, "resultsfield": "o2P", "comment":"zuurstoftekort, aandeel fosfor."},
+        {"benchmark": "diepte", "weight": 1, "resultsfield": "o2diep", "comment":"zuurstoftekort, aandeel waterdiepte."},
+        {"benchmark": "doodlopend", "weight": 1, "resultsfield": "o2dl", "comment":"zuurstoftekort, aandeel doodlopendheid."},
+        {"benchmark": "verblijftijd", "weight": 1, "resultsfield": "o2res", "comment":"zuurstoftekort, aandeel verblijftijd."}
+      ]
+    }
+  ],
+  "results": {
+    "dataset": "watervlakken"
+  }
+}

@@ -109,7 +109,7 @@ Public Class clsRule
 
                         'debugging section
                         'Debug.Print("Processing row " & iRow)
-                        If fid = 82741 Then Stop 'Broekvelden Vettebroek
+                        'If fid = 82741 Then Stop 'Broekvelden Vettebroek
 
                         For Each Component As clsEquationComponent In EquationComponents
 

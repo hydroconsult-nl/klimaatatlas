@@ -1,10 +1,75 @@
-DIAGNOSTICS FILE, CREATED ON: 14-11-2024 22:45:58
+DIAGNOSTICS FILE, CREATED ON: 15-11-2024 12:20:16
 Reading configuration file.
 Error In Function PopulateScenarios Of Class clsKlimaatatlas:  Er is al een item met dezelfde sleutel toegevoegd.
 Configuration file read.
 Setting geopackage connection.
 Geopackage connection set.
 Processing rules.
+Processing rule biomassa
+Geopackage successfully opened.
+Geopackage extensions enabled.
+Geopackage spatialite extension loaded.
+Processing scenario K2023
+SQLite transaction started
+Field names collected for scenario K2023
+Constants collected for scenario K2023
+Made sure column K2023_biomassa exists
+Creating field for component bm_Tex
+Field for component bm_Tex created.
+Creating field for component bm_mestN
+Field for component bm_mestN created.
+Creating field for component bm_mestP
+Field for component bm_mestP created.
+Creating field for component bm_max
+Field for component bm_max created.
+Executing query SELECT fid, Tex23, K2023_Nt_50pct, K2023_Pt_50pct, waterdiepte, K2023_biomassa, K2023_bm_Tex, K2023_bm_mestN, K2023_bm_mestP, K2023_bm_max FROM Watervlakken_Plus7;)
+Number of rows to process for rule biomassa: 98773
+Number of components to process for rule biomassa: 4
+All rows processed.
+Writing results back to the database.
+Results written.
+Scenario K2023 processed.
+Processing scenario K2050
+SQLite transaction started
+Field names collected for scenario K2050
+Constants collected for scenario K2050
+Made sure column K2050_biomassa exists
+Creating field for component bm_Tex
+Field for component bm_Tex created.
+Creating field for component bm_mestN
+Field for component bm_mestN created.
+Creating field for component bm_mestP
+Field for component bm_mestP created.
+Creating field for component bm_max
+Field for component bm_max created.
+Executing query SELECT fid, Tex85, K2050_Nt_50pct, K2050_Pt_50pct, waterdiepte, K2050_biomassa, K2050_bm_Tex, K2050_bm_mestN, K2050_bm_mestP, K2050_bm_max FROM Watervlakken_Plus7;)
+Number of rows to process for rule biomassa: 98773
+Number of components to process for rule biomassa: 4
+All rows processed.
+Writing results back to the database.
+Results written.
+Scenario K2050 processed.
+Processing scenario K2100
+SQLite transaction started
+Field names collected for scenario K2100
+Constants collected for scenario K2100
+Made sure column K2100_biomassa exists
+Creating field for component bm_Tex
+Field for component bm_Tex created.
+Creating field for component bm_mestN
+Field for component bm_mestN created.
+Creating field for component bm_mestP
+Field for component bm_mestP created.
+Creating field for component bm_max
+Field for component bm_max created.
+Executing query SELECT fid, Tex85, K2100_Nt_50pct, K2100_Pt_50pct, waterdiepte, K2100_biomassa, K2100_bm_Tex, K2100_bm_mestN, K2100_bm_mestP, K2100_bm_max FROM Watervlakken_Plus7;)
+Number of rows to process for rule biomassa: 98773
+Number of components to process for rule biomassa: 4
+All rows processed.
+Writing results back to the database.
+Results written.
+Scenario K2100 processed.
+Rule biomassa processed.
 Processing rule dl
 Geopackage successfully opened.
 Geopackage extensions enabled.
@@ -64,6 +129,154 @@ Writing results back to the database.
 Results written.
 Scenario K2100 processed.
 Rule dl processed.
+Processing rule kroos
+Geopackage successfully opened.
+Geopackage extensions enabled.
+Geopackage spatialite extension loaded.
+Processing scenario K2023
+SQLite transaction started
+Field names collected for scenario K2023
+Constants collected for scenario K2023
+Made sure column K2023_kroos exists
+Creating field for component kroos_doodl
+Field for component kroos_doodl created.
+Creating field for component kroos_br
+Field for component kroos_br created.
+Creating field for component kroos_Tex
+Field for component kroos_Tex created.
+Executing query SELECT fid, doodlopend, waterdiepte, Breedte, Tex23, K2023_kroos, K2023_kroos_doodl, K2023_kroos_br, K2023_kroos_Tex FROM Watervlakken_Plus7;)
+Number of rows to process for rule kroos: 98773
+Number of components to process for rule kroos: 3
+All rows processed.
+Writing results back to the database.
+Results written.
+Scenario K2023 processed.
+Processing scenario K2050
+SQLite transaction started
+Field names collected for scenario K2050
+Constants collected for scenario K2050
+Made sure column K2050_kroos exists
+Creating field for component kroos_doodl
+Field for component kroos_doodl created.
+Creating field for component kroos_br
+Field for component kroos_br created.
+Creating field for component kroos_Tex
+Field for component kroos_Tex created.
+Executing query SELECT fid, doodlopend, waterdiepte, Breedte, Tex85, K2050_kroos, K2050_kroos_doodl, K2050_kroos_br, K2050_kroos_Tex FROM Watervlakken_Plus7;)
+Number of rows to process for rule kroos: 98773
+Number of components to process for rule kroos: 3
+All rows processed.
+Writing results back to the database.
+Results written.
+Scenario K2050 processed.
+Processing scenario K2100
+SQLite transaction started
+Field names collected for scenario K2100
+Constants collected for scenario K2100
+Made sure column K2100_kroos exists
+Creating field for component kroos_doodl
+Field for component kroos_doodl created.
+Creating field for component kroos_br
+Field for component kroos_br created.
+Creating field for component kroos_Tex
+Field for component kroos_Tex created.
+Executing query SELECT fid, doodlopend, waterdiepte, Breedte, Tex85, K2100_kroos, K2100_kroos_doodl, K2100_kroos_br, K2100_kroos_Tex FROM Watervlakken_Plus7;)
+Number of rows to process for rule kroos: 98773
+Number of components to process for rule kroos: 3
+All rows processed.
+Writing results back to the database.
+Results written.
+Scenario K2100 processed.
+Rule kroos processed.
+Processing rule oxy
+Geopackage successfully opened.
+Geopackage extensions enabled.
+Geopackage spatialite extension loaded.
+Processing scenario K2023
+SQLite transaction started
+Field names collected for scenario K2023
+Constants collected for scenario K2023
+Made sure column K2023_oxy exists
+Creating field for component o2Tex
+Field for component o2Tex created.
+Creating field for component o2vov
+Field for component o2vov created.
+Creating field for component o2bt
+Field for component o2bt created.
+Creating field for component o2N
+Field for component o2N created.
+Creating field for component o2P
+Field for component o2P created.
+Creating field for component o2diep
+Field for component o2diep created.
+Creating field for component o2dl
+Field for component o2dl created.
+Creating field for component o2res
+Field for component o2res created.
+Executing query SELECT fid, Tex23, K2023_Nt_vov_50pct, BODEMKLASS, K2023_Nt_50pct, K2023_Pt_50pct, waterdiepte, doodlopend, K2023_ResTim_50pct, K2023_oxy, K2023_o2Tex, K2023_o2vov, K2023_o2bt, K2023_o2N, K2023_o2P, K2023_o2diep, K2023_o2dl, K2023_o2res FROM Watervlakken_Plus7;)
+Number of rows to process for rule oxy: 98773
+Number of components to process for rule oxy: 8
+All rows processed.
+Writing results back to the database.
+Results written.
+Scenario K2023 processed.
+Processing scenario K2050
+SQLite transaction started
+Field names collected for scenario K2050
+Constants collected for scenario K2050
+Made sure column K2050_oxy exists
+Creating field for component o2Tex
+Field for component o2Tex created.
+Creating field for component o2vov
+Field for component o2vov created.
+Creating field for component o2bt
+Field for component o2bt created.
+Creating field for component o2N
+Field for component o2N created.
+Creating field for component o2P
+Field for component o2P created.
+Creating field for component o2diep
+Field for component o2diep created.
+Creating field for component o2dl
+Field for component o2dl created.
+Creating field for component o2res
+Field for component o2res created.
+Executing query SELECT fid, Tex85, K2050_Nt_vov_50pct, BODEMKLASS, K2050_Nt_50pct, K2050_Pt_50pct, waterdiepte, doodlopend, K2050_ResTim_50pct, K2050_oxy, K2050_o2Tex, K2050_o2vov, K2050_o2bt, K2050_o2N, K2050_o2P, K2050_o2diep, K2050_o2dl, K2050_o2res FROM Watervlakken_Plus7;)
+Number of rows to process for rule oxy: 98773
+Number of components to process for rule oxy: 8
+All rows processed.
+Writing results back to the database.
+Results written.
+Scenario K2050 processed.
+Processing scenario K2100
+SQLite transaction started
+Field names collected for scenario K2100
+Constants collected for scenario K2100
+Made sure column K2100_oxy exists
+Creating field for component o2Tex
+Field for component o2Tex created.
+Creating field for component o2vov
+Field for component o2vov created.
+Creating field for component o2bt
+Field for component o2bt created.
+Creating field for component o2N
+Field for component o2N created.
+Creating field for component o2P
+Field for component o2P created.
+Creating field for component o2diep
+Field for component o2diep created.
+Creating field for component o2dl
+Field for component o2dl created.
+Creating field for component o2res
+Field for component o2res created.
+Executing query SELECT fid, Tex85, K2100_Nt_vov_50pct, BODEMKLASS, K2100_Nt_50pct, K2100_Pt_50pct, waterdiepte, doodlopend, K2100_ResTim_50pct, K2100_oxy, K2100_o2Tex, K2100_o2vov, K2100_o2bt, K2100_o2N, K2100_o2P, K2100_o2diep, K2100_o2dl, K2100_o2res FROM Watervlakken_Plus7;)
+Number of rows to process for rule oxy: 98773
+Number of components to process for rule oxy: 8
+All rows processed.
+Writing results back to the database.
+Results written.
+Scenario K2100 processed.
+Rule oxy processed.
 Rules processed.
 Closing geopackage.
 Geopackage closed.
