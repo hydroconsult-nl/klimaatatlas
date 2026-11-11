@@ -1,0 +1,235 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:Klimaatatlas.Gui.ViewModels"
+        xmlns:c="using:Klimaatatlas.Gui.Controls"
+        x:Class="Klimaatatlas.Gui.Views.MainWindow"
+        x:DataType="vm:MainViewModel"
+        Title="{Binding Title}"
+        Width="1150" Height="760" MinWidth="760" MinHeight="480"
+        WindowStartupLocation="CenterScreen">
+
+  <Window.Styles>
+    <Style Selector="TextBlock.log.error">
+      <Setter Property="Foreground" Value="#D13438" />
+    </Style>
+    <Style Selector="TextBlock.log.warning">
+      <Setter Property="Foreground" Value="#C77700" />
+    </Style>
+    <Style Selector="TextBlock.warning">
+      <Setter Property="Foreground" Value="#C77700" />
+    </Style>
+    <Style Selector="Border.result">
+      <Setter Property="CornerRadius" Value="6" />
+      <Setter Property="Padding" Value="14,10" />
+      <Setter Property="Margin" Value="0,0,0,8" />
+      <Setter Property="Background" Value="#1E2EA043" />
+      <Setter Property="BorderBrush" Value="#2EA043" />
+      <Setter Property="BorderThickness" Value="1" />
+    </Style>
+    <Style Selector="Border.result.failed">
+      <Setter Property="Background" Value="#1ED13438" />
+      <Setter Property="BorderBrush" Value="#D13438" />
+    </Style>
+    <Style Selector="TextBlock.caption">
+      <Setter Property="Opacity" Value="0.7" />
+      <Setter Property="FontSize" Value="12" />
+    </Style>
+    <Style Selector="TextBlock.heading">
+      <Setter Property="FontSize" Value="15" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+    </Style>
+    <Style Selector="Border.card">
+      <Setter Property="Background" Value="{DynamicResource CardBackgroundFillColorDefaultBrush}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource CardStrokeColorDefaultBrush}" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="6" />
+      <Setter Property="Padding" Value="14,10" />
+      <Setter Property="Margin" Value="0,0,0,8" />
+    </Style>
+  </Window.Styles>
+
+  <DockPanel>
+
+    <!-- configuration and geopackage -->
+    <Grid DockPanel.Dock="Top" Margin="16,14,16,6" ColumnDefinitions="Auto,*,Auto,Auto" RowDefinitions="Auto,Auto,Auto">
+      <TextBlock Grid.Row="0" Text="Configuratie" VerticalAlignment="Center" Margin="0,0,12,0" />
+      <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding ConfigPath}" IsReadOnly="True"
+               Watermark="Kies een rekenregels-bestand (.json)" />
+      <Button Grid.Row="0" Grid.Column="2" Content="Bladeren…" Margin="8,0,0,0" Command="{Binding BrowseConfigCommand}" />
+      <Button Grid.Row="0" Grid.Column="3" Content="Opnieuw laden" Margin="8,0,0,0" Command="{Binding ReloadCommand}"
+              ToolTip.Tip="Lees het configuratiebestand opnieuw in (na wijzigingen)" />
+
+      <TextBlock Grid.Row="1" Text="Geopackage" VerticalAlignment="Center" Margin="0,8,12,0" />
+      <TextBox Grid.Row="1" Grid.Column="1" Margin="0,8,0,0" Text="{Binding GpkgPath}" IsReadOnly="True"
+               Watermark="uit features_dataset.path in de configuratie"
+               ToolTip.Tip="Uit de configuratie (features_dataset.path). Hier worden de resultaten in geschreven." />
+      <Button Grid.Row="1" Grid.Column="2" Content="Andere kiezen…" Margin="8,8,0,0" Command="{Binding BrowseGpkgCommand}"
+              IsEnabled="{Binding HasConfiguration}"
+              ToolTip.Tip="Eenmalig een andere geopackage gebruiken dan in de configuratie staat (bijv. een kopie, of op een Mac)" />
+      <Button Grid.Row="1" Grid.Column="3" Content="Terug naar config" Margin="8,8,0,0" Command="{Binding ResetGpkgCommand}"
+              IsVisible="{Binding IsGpkgOverridden}" />
+
+      <StackPanel Grid.Row="2" Grid.Column="1" Margin="0,4,0,0" Spacing="2" IsVisible="{Binding HasConfiguration}">
+        <TextBlock Classes="warning" IsVisible="{Binding IsGpkgOverridden}" FontSize="12"
+                   Text="Let op: afwijkend van de configuratie. Deze keuze wordt niet in het configuratiebestand opgeslagen." />
+        <TextBlock Classes="caption"
+                   Text="{Binding TableName, StringFormat='Tabel: {0}   ·   resultaten worden direct in deze geopackage geschreven; werk zo nodig op een kopie.'}" />
+      </StackPanel>
+    </Grid>
+
+    <!-- progress -->
+    <Border DockPanel.Dock="Bottom" Padding="16,8,16,12"
+            BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}" BorderThickness="0,1,0,0">
+      <Grid ColumnDefinitions="*,220">
+        <TextBlock Text="{Binding ProgressText}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+        <ProgressBar Grid.Column="1" Value="{Binding ProgressValue}" Minimum="0" Maximum="100"
+                     IsIndeterminate="False" VerticalAlignment="Center" />
+      </Grid>
+    </Border>
+
+    <TabControl Margin="8,0">
+
+      <!-- run -->
+      <TabItem Header="Doorrekenen">
+        <Grid ColumnDefinitions="260,*" Margin="8,8,8,0">
+          <ScrollViewer Grid.Column="0" Margin="0,0,16,0">
+            <StackPanel Spacing="4">
+              <TextBlock Classes="heading" Text="Scenario's" />
+              <ItemsControl ItemsSource="{Binding Scenarios}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate x:DataType="vm:SelectableItem">
+                    <CheckBox Content="{Binding Name}" IsChecked="{Binding IsSelected}" />
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+
+              <TextBlock Classes="heading" Text="Rekenregels" Margin="0,12,0,0" />
+              <ItemsControl ItemsSource="{Binding Rules}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate x:DataType="vm:RuleViewModel">
+                    <CheckBox Content="{Binding Name}" IsChecked="{Binding IsSelected}" />
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+
+              <Button Classes="accent" Content="Doorrekenen" Margin="0,16,0,0" Padding="20,10"
+                      HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
+                      Command="{Binding ExecuteCommand}" />
+            </StackPanel>
+          </ScrollViewer>
+
+          <DockPanel Grid.Column="1">
+            <Grid DockPanel.Dock="Top" ColumnDefinitions="*,Auto,Auto" Margin="0,0,0,6">
+              <TextBlock Classes="heading" Text="Meldingen" VerticalAlignment="Center" />
+              <Button Grid.Column="1" Content="Diagnosebestand openen" Margin="8,0,0,0"
+                      Command="{Binding OpenDiagnosticsCommand}" IsEnabled="{Binding DiagnosticsPath, Converter={x:Static ObjectConverters.IsNotNull}}" />
+              <Button Grid.Column="2" Content="Wissen" Margin="8,0,0,0" Command="{Binding ClearLogCommand}" />
+            </Grid>
+            <Border DockPanel.Dock="Top" Classes="result" Classes.failed="{Binding RunFailed}" IsVisible="{Binding HasRunResult}">
+              <Grid ColumnDefinitions="Auto,*">
+                <TextBlock FontSize="18" FontWeight="Bold" VerticalAlignment="Center" Margin="0,0,12,0"
+                           Text="{Binding RunFailed, Converter={x:Static vm:Converters.ResultSymbol}}" />
+                <StackPanel Grid.Column="1">
+                  <TextBlock FontWeight="SemiBold"
+                             Text="{Binding RunFailed, Converter={x:Static vm:Converters.ResultTitle}}" />
+                  <TextBlock Text="{Binding RunSummary}" TextWrapping="Wrap" />
+                </StackPanel>
+              </Grid>
+            </Border>
+            <Border Classes="card" Padding="8" Margin="0,0,0,8">
+              <ListBox ItemsSource="{Binding LogEntries}" Background="Transparent">
+                <ListBox.ItemTemplate>
+                  <DataTemplate x:DataType="vm:LogEntry">
+                    <SelectableTextBlock TextWrapping="Wrap">
+                      <Run Text="{Binding Prefix}" FontWeight="SemiBold" />
+                      <Run Text="{Binding Message}" />
+                    </SelectableTextBlock>
+                  </DataTemplate>
+                </ListBox.ItemTemplate>
+                <ListBox.Styles>
+                  <Style Selector="ListBoxItem">
+                    <Setter Property="Padding" Value="6,3" />
+                  </Style>
+                </ListBox.Styles>
+              </ListBox>
+            </Border>
+          </DockPanel>
+        </Grid>
+      </TabItem>
+
+      <!-- benchmarks -->
+      <TabItem Header="Maatlatten">
+        <DockPanel Margin="8,8,8,0">
+          <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="12" Margin="0,0,0,10">
+            <TextBlock Text="Rekenregel" VerticalAlignment="Center" />
+            <ComboBox ItemsSource="{Binding Rules}" SelectedItem="{Binding SelectedRule}" MinWidth="240">
+              <ComboBox.ItemTemplate>
+                <DataTemplate x:DataType="vm:RuleViewModel">
+                  <TextBlock Text="{Binding Name}" />
+                </DataTemplate>
+              </ComboBox.ItemTemplate>
+            </ComboBox>
+            <TextBlock Classes="caption" VerticalAlignment="Center"
+                       Text="groen = oordeel 0 (geen risico) · geel = 0,5 · rood = 1 (hoog risico)" />
+          </StackPanel>
+          <ScrollViewer>
+            <ItemsControl ItemsSource="{Binding SelectedRule.Benchmarks, FallbackValue={x:Null}}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="vm:BenchmarkViewModel">
+                  <Border Classes="card">
+                    <StackPanel Spacing="4">
+                      <StackPanel Orientation="Horizontal" Spacing="10">
+                        <TextBlock Classes="heading" Text="{Binding Name}" />
+                        <TextBlock Classes="caption" VerticalAlignment="Bottom" Text="{Binding Kind}" />
+                        <TextBlock Classes="caption" VerticalAlignment="Bottom" Text="{Binding WeightText}" />
+                        <TextBlock Classes="caption" VerticalAlignment="Bottom" Text="{Binding NullText}" />
+                        <TextBlock Classes="caption" VerticalAlignment="Bottom" Text="{Binding FilterText}" />
+                      </StackPanel>
+                      <TextBlock Classes="caption" Text="{Binding Inputs}" TextWrapping="Wrap" />
+                      <c:ColorScale Benchmark="{Binding Benchmark}" Margin="0,4,0,0" />
+                    </StackPanel>
+                  </Border>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </ScrollViewer>
+        </DockPanel>
+      </TabItem>
+
+      <!-- rules -->
+      <TabItem Header="Rekenregels">
+        <ScrollViewer Margin="8,8,8,0">
+          <ItemsControl ItemsSource="{Binding Rules}">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate x:DataType="vm:RuleViewModel">
+                <Border Classes="card">
+                  <StackPanel Spacing="6">
+                    <TextBlock Classes="heading" Text="{Binding Name}" />
+                    <SelectableTextBlock FontFamily="Consolas,Menlo,DejaVu Sans Mono,monospace" Text="{Binding Formula}" TextWrapping="Wrap" />
+                    <TextBlock Classes="caption" Text="{Binding FilterText, StringFormat='Geldt voor: {0}'}" />
+                    <Grid ColumnDefinitions="Auto,Auto,Auto,*" Margin="0,4,0,0">
+                      <ItemsControl Grid.ColumnSpan="4" ItemsSource="{Binding Components}">
+                        <ItemsControl.ItemTemplate>
+                          <DataTemplate x:DataType="vm:ComponentViewModel">
+                            <Grid ColumnDefinitions="200,80,80,*">
+                              <TextBlock Text="{Binding Benchmark}" />
+                              <TextBlock Grid.Column="1" Text="{Binding Weight, StringFormat='× {0}'}" />
+                              <TextBlock Grid.Column="2" Text="{Binding Share}" Classes="caption" />
+                              <TextBlock Grid.Column="3" Text="{Binding ResultsField, StringFormat='→ {0}'}" Classes="caption" />
+                            </Grid>
+                          </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                      </ItemsControl>
+                    </Grid>
+                    <TextBlock Classes="caption" Text="{Binding OutputColumns, StringFormat='Uitvoerkolommen: {0}'}" TextWrapping="Wrap" />
+                  </StackPanel>
+                </Border>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </ScrollViewer>
+      </TabItem>
+
+    </TabControl>
+  </DockPanel>
+</Window>
