@@ -64,6 +64,9 @@ public sealed class RuleEngineTests : IDisposable
             CREATE TRIGGER "rtree_watervlakken_geom_update1" AFTER UPDATE OF geom ON watervlakken
               WHEN OLD.fid = NEW.fid AND (NEW.geom NOTNULL AND NOT ST_IsEmpty(NEW.geom))
               BEGIN INSERT OR REPLACE INTO rtree_dummy VALUES (NEW.fid); END;
+            CREATE TRIGGER "rtree_watervlakken_geom_update4" AFTER UPDATE ON watervlakken
+              WHEN OLD.fid != NEW.fid AND (NEW.geom IS NULL OR ST_IsEmpty(NEW.geom))
+              BEGIN DELETE FROM rtree_dummy WHERE id IN (OLD.fid, NEW.fid); END;
             CREATE TRIGGER "rtree_watervlakken_geom_insert" AFTER INSERT ON watervlakken
               WHEN (NEW.geom NOT NULL AND NOT ST_IsEmpty(NEW.geom))
               BEGIN INSERT OR REPLACE INTO rtree_dummy VALUES (NEW.fid); END;

@@ -42,8 +42,10 @@ Maak eerst een kopie van de geopackage: de resultaten worden er direct in geschr
 
 ### SpatiaLite (optioneel)
 
-De rekenregels lezen en schrijven alleen attribuutkolommen, dus SpatiaLite is niet nodig. Het programma
-probeert `mod_spatialite` wel te laden; lukt dat niet, dan volgt een waarschuwing en gaat het verder.
+De rekenregels lezen en schrijven alleen attribuutkolommen, dus SpatiaLite is niet nodig. Geopackages
+die met GDAL/QGIS zijn gemaakt bevatten wel triggers die bij elke wijziging `ST_IsEmpty` aanroepen; als
+`mod_spatialite` niet gevonden wordt, levert het programma die functies (`ST_IsEmpty`, `ST_MinX`, ...)
+zelf, op basis van de GeoPackage-geometrieheader. Wil je toch SpatiaLite gebruiken:
 
 * Windows: `--spatialite pad\naar\dependencies\mod_spatialite-5.1.0-win-amd64\mod_spatialite.dll`
 * macOS: `brew install libspatialite`

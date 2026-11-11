@@ -13,9 +13,9 @@ public static class GeoPackage
 
     /// <param name="path">Path to the .gpkg file. Must exist.</param>
     /// <param name="spatialiteExtension">
-    /// SpatiaLite library to load, or null to skip it. The rules only read and write attribute columns,
-    /// so SpatiaLite is optional; it is loaded when available so GeoPackage triggers that call spatial
-    /// functions keep working. When loading fails a warning is logged and processing continues.
+    /// SpatiaLite library to load, or null to skip it. SpatiaLite is optional: the rules only read and
+    /// write attribute columns, and when it is not loaded the spatial functions that GeoPackage triggers
+    /// call are provided by <see cref="GeoPackageFunctions"/>.
     /// </param>
     public static SqliteConnection Open(string path, DiagnosticsLog log, string? spatialiteExtension = DefaultSpatialiteExtension)
     {
@@ -33,20 +33,31 @@ public static class GeoPackage
         connection.Open();
         log.Trace("Geopackage successfully opened.");
 
+        var spatialiteLoaded = false;
         if (spatialiteExtension is not null)
         {
             try
             {
                 AddLibraryDirectoryToSearchPath(spatialiteExtension);
                 connection.LoadExtension(spatialiteExtension);
+                spatialiteLoaded = true;
                 log.Trace($"Geopackage spatialite extension loaded ({spatialiteExtension}).");
             }
             catch (SqliteException ex)
             {
-                log.AddWarning(
-                    $"SpatiaLite extension '{spatialiteExtension}' could not be loaded ({string.Join(' ', ex.Message.Split((char[])['\r', '\n'], StringSplitOptions.RemoveEmptyEntries)).Replace(" '.", "'.")}). " +
-                    "Continuing without it; this is only a problem if the geopackage has triggers that use spatial functions.");
+                var reason = string.Join(' ', ex.Message.Split((char[])['\r', '\n'], StringSplitOptions.RemoveEmptyEntries)).Replace(" '.", "'.");
+                var message = $"SpatiaLite extension '{spatialiteExtension}' could not be loaded ({reason}); using built-in GeoPackage functions instead.";
+                // Not finding the default library is normal; an explicitly requested one that fails is worth a warning.
+                if (spatialiteExtension == DefaultSpatialiteExtension) log.Trace(message);
+                else log.AddWarning(message);
             }
+        }
+
+        // GeoPackage rtree triggers call ST_IsEmpty etc. on every UPDATE; provide them when SpatiaLite is absent.
+        if (!spatialiteLoaded)
+        {
+            GeoPackageFunctions.Register(connection);
+            log.Trace("Built-in GeoPackage functions (ST_IsEmpty, ST_MinX/MaxX/MinY/MaxY) registered.");
         }
 
         return connection;
