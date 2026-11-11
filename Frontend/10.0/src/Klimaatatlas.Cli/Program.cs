@@ -104,9 +104,12 @@ internal static class Program
 
     private static int Run(Options options)
     {
+        var progress = options.Quiet ? null : new ConsoleProgress();
         var log = new DiagnosticsLog();
         log.EntryAdded += (level, message) =>
         {
+            // finish a running "... 57%" line first, so messages start on their own line
+            if (level != LogLevel.Trace || options.Verbose) progress?.Done();
             switch (level)
             {
                 case LogLevel.Error: Console.Error.WriteLine($"FOUT: {message}"); break;
@@ -172,7 +175,6 @@ internal static class Program
             using var connection = GeoPackage.Open(gpkgPath, log, options.NoSpatialite ? null : options.SpatialitePath);
             log.Trace("Geopackage connection set.");
 
-            var progress = options.Quiet ? null : new ConsoleProgress();
             var engine = new RuleEngine(connection, table, log, progress);
             var ok = engine.ProcessRules(rules, scenarios);
             progress?.Done();

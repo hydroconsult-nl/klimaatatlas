@@ -88,12 +88,18 @@ Rekenkundige verschillen – bewust, maar controleer de uitkomsten op een kopie 
    als `52185x^2 - 52498x + 14222`.
 2. **`nullValue` werkt nu.** De oude versie controleerde op `nullValue` maar las daarna `nullvalue`
    (andere hoofdletter), waardoor altijd 0 werd gebruikt.
-3. **Lege waarden (NULL) zonder `nullValue`**: de oude versie liep bij een continue maatlat vast en
-   rekende dan de hele regel voor dat scenario niet door. Nu wordt die maatlat voor dat record
-   weggelaten uit het gewogen gemiddelde, krijgt de bijdragekolom NULL en volgt een waarschuwing.
-4. Transformaties als `-x^2 + ...` (alleen een teken als coëfficiënt) worden nu geaccepteerd.
-5. Configuratiefouten (ontbrekende velden, dubbele namen, onbekende maatlat in `components`) stoppen
+3. Transformaties als `-x^2 + ...` (alleen een teken als coëfficiënt) worden nu geaccepteerd.
+4. Configuratiefouten (ontbrekende velden, dubbele namen, onbekende maatlat in `components`) stoppen
    het programma met een duidelijke melding, in plaats van stilzwijgend een deel van de regels te laden.
+   Een kolom die niet in de geopackage staat, of een maatlat zonder veld of constante voor een
+   scenario, geeft vóór het rekenen een foutmelding met de naam van de maatlat.
+
+Lege waarden (NULL) zonder `nullValue` worden behandeld zoals in de oude versie, en per maatlat gemeld:
+
+* **discrete maatlat** (bijv. `doodlopend`): oordeel 0, telt wél mee in de weging;
+* **continue maatlat** (bijv. `K2023_Pt_50pct`): de uitkomst van de regel voor dat record wordt NULL.
+
+Wil je ander gedrag, geef de maatlat dan een `"nullValue"`.
 
 Ongewijzigd gebleven gedrag dat je misschien wilt herzien:
 

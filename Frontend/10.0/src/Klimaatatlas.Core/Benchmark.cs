@@ -42,17 +42,23 @@ public sealed class Benchmark
 
     /// <summary>
     /// Returns the input value for one record and scenario, after NULL replacement and transformation.
-    /// Returns null when this benchmark has neither a field nor a constant for the scenario,
-    /// or when the field is NULL and no <see cref="NullValue"/> was configured.
+    /// Returns null when this benchmark has neither a field nor a constant for the scenario.
+    /// A NULL field value is replaced by <see cref="NullValue"/>; when none is configured that is NaN,
+    /// exactly as in the original application. The effect of NaN is:
+    /// discrete → verdict 0 (counted in the weights); continuous → NaN, so the rule result for that record is NULL.
     /// </summary>
-    public object? GetInputValue(string scenario, Func<string, object?> readField)
+    public object? GetInputValue(string scenario, Func<string, object?> readField) =>
+        GetInputValue(scenario, readField, out _);
+
+    public object? GetInputValue(string scenario, Func<string, object?> readField, out bool wasNull)
     {
+        wasNull = false;
         if (FieldNamesPerScenario.TryGetValue(scenario, out var fieldName))
         {
             var value = readField(fieldName);
             if (value is null or DBNull)
             {
-                if (double.IsNaN(NullValue)) return null;
+                wasNull = true;
                 value = NullValue;
             }
 

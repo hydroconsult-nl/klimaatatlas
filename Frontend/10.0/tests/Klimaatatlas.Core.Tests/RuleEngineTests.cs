@@ -60,7 +60,7 @@ public sealed class RuleEngineTests : IDisposable
         cmd.CommandText = """
             CREATE TABLE watervlakken (fid INTEGER PRIMARY KEY AUTOINCREMENT, geom BLOB, waterdiepte REAL, doodlopend TEXT);
             CREATE TABLE rtree_dummy (id INTEGER PRIMARY KEY);
-            INSERT INTO watervlakken (fid, waterdiepte, doodlopend) VALUES (1, 1.0, 'ja'), (2, NULL, 'nee'), (3, 2.0, 'Nee');
+            INSERT INTO watervlakken (fid, waterdiepte, doodlopend) VALUES (1, 1.0, 'ja'), (2, NULL, 'nee'), (3, 2.0, 'Nee'), (4, 0.0, NULL);
             CREATE TRIGGER "rtree_watervlakken_geom_update1" AFTER UPDATE OF geom ON watervlakken
               WHEN OLD.fid = NEW.fid AND (NEW.geom NOTNULL AND NOT ST_IsEmpty(NEW.geom))
               BEGIN INSERT OR REPLACE INTO rtree_dummy VALUES (NEW.fid); END;
@@ -116,17 +116,25 @@ public sealed class RuleEngineTests : IDisposable
         Assert.Equal(1.0 / 4, (double)r1[2]!, 9);
         Assert.Equal(2.0 / 3 / 4, (double)r1[3]!, 9);
 
-        // fid 2: diepte NULL without nullValue → left out; dood nee → 0; temp 2/3; Σw = 2
+        // fid 2: continuous diepte NULL without nullValue → rule result NULL (original behaviour);
+        // the other contributions are still written, divided by the full Σw = 4
         var r2 = Row(2, "K2023_kroos", "K2023_kroos_diepte", "K2023_kroos_dood", "K2023_kroos_temp");
-        Assert.Equal(2.0 / 3 / 2, (double)r2[0]!, 9);
+        Assert.Null(r2[0]);
         Assert.Null(r2[1]);
         Assert.Equal(0.0, (double)r2[2]!, 9);
+        Assert.Equal(2.0 / 3 / 4, (double)r2[3]!, 9);
+
+        // fid 4: discrete doodlopend NULL without nullValue → verdict 0, still counted: (2·1 + 0 + 2/3) / 4
+        var r4 = Row(4, "K2023_kroos", "K2023_kroos_dood");
+        Assert.Equal((2 * 1 + 0 + 2.0 / 3) / 4, (double)r4[0]!, 9);
+        Assert.Equal(0.0, (double)r4[1]!, 9);
 
         // K2050: temp constant 30 → 1
         var r1b = Row(1, "K2050_kroos");
         Assert.Equal((2 * 0.5 + 1 + 1) / 4, (double)r1b[0]!, 9);
 
-        Assert.Contains(log.Warnings, w => w.Contains("kroos") && w.Contains("K2023"));
+        Assert.Contains(log.Warnings, w => w.Contains("benchmark diepte has 1 empty value(s) in waterdiepte") && w.Contains("K2023_kroos is NULL"));
+        Assert.Contains(log.Warnings, w => w.Contains("benchmark dood has 1 empty value(s)") && w.Contains("verdict 0"));
     }
 
     [Fact]
@@ -159,7 +167,7 @@ public sealed class RuleEngineTests : IDisposable
         File.WriteAllText(Path.Combine(_dir, "config.json"), Config.Replace("\"field\":\"doodlopend\"}, {\"scenario\":\"K2050\"", "\"field\":\"bestaatniet\"}, {\"scenario\":\"K2050\""));
         var (ok, log) = Run();
         Assert.False(ok);
-        Assert.Contains(log.Errors, e => e.Contains("kroos"));
+        Assert.Contains(log.Errors, e => e.Contains("kroos") && e.Contains("bestaatniet (used by dood)"));
         // the scenario transaction was rolled back, so the result column was not added
         using var con = new SqliteConnection($"Data Source={GpkgPath};Pooling=False");
         con.Open();

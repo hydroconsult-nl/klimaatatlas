@@ -113,6 +113,7 @@ public class BenchmarkTests
         Assert.Equal(1, b.GetResult(" ja "));
         Assert.Equal(0.2, b.GetResult("NEE"));
         Assert.Equal(0, b.GetResult("onbekend"));
+        Assert.Equal(0, b.GetResult(double.NaN)); // NULL without nullValue → verdict 0, like the original
     }
 
     [Fact]
@@ -126,7 +127,9 @@ public class BenchmarkTests
         Assert.Equal(0.7, b.GetInputValue("k2023", _ => 0.7));          // scenario lookup is case-insensitive
         Assert.Equal(25.0, b.GetInputValue("K2050", _ => throw new InvalidOperationException()));
         Assert.Null(b.GetInputValue("K2100", _ => 1.0));                 // neither field nor constant
-        Assert.Null(b.GetInputValue("K2023", _ => DBNull.Value));        // NULL, no nullValue
+        Assert.Equal(double.NaN, b.GetInputValue("K2023", _ => DBNull.Value, out var wasNull)); // NULL, no nullValue → NaN (original behaviour)
+        Assert.True(wasNull);
+        Assert.Equal(double.NaN, b.GetResult(double.NaN));
 
         b.NullValue = 0;
         Assert.Equal(0.0, b.GetInputValue("K2023", _ => DBNull.Value));

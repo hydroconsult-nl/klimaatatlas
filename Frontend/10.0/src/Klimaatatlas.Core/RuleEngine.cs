@@ -11,8 +11,9 @@ public readonly record struct ProgressReport(string? Message, long Current, long
 /// For every scenario and record:
 ///   result         = Σ(verdict_i · weight_i) / Σ(weight_i)        → column "{scenario}_{rule}"
 ///   contribution_i = verdict_i · weight_i / Σ(weight_i)          → column "{scenario}_{resultsfield}"
-/// Benchmarks without an input value for a record (no field/constant, or NULL without nullValue)
-/// are left out of both sums for that record and their contribution is written as NULL.
+/// A NULL input without nullValue behaves as in the original application: a discrete benchmark gives
+/// verdict 0 (still counted in Σ weight); a continuous benchmark gives NaN, so the rule result and that
+/// component's contribution are written as NULL for the record.
 /// </summary>
 public sealed class RuleEngine(SqliteConnection connection, string tableName, DiagnosticsLog log, IProgress<ProgressReport>? progress = null)
 {
@@ -60,9 +61,11 @@ public sealed class RuleEngine(SqliteConnection connection, string tableName, Di
         log.Trace($"Processing scenario {scenario}");
         Report($"Processing rule {rule.Name} for scenario {scenario}...", 0, 10);
 
+        var inputFields = rule.GetFieldNamesForScenario(scenario);
+        CheckInputs(rule, scenario, inputFields);
+
         using var transaction = connection.BeginTransaction();
 
-        var inputFields = rule.GetFieldNamesForScenario(scenario);
         var resultColumn = rule.ResultColumn(scenario);
         var componentColumns = rule.Components.Select(c => c.ResultColumn(scenario)).ToList();
 
@@ -89,7 +92,7 @@ public sealed class RuleEngine(SqliteConnection connection, string tableName, Di
         update.Prepare();
 
         var componentResults = new double[rule.Components.Count];
-        var skippedValues = 0;
+        var nullCounts = new int[rule.Components.Count];
 
         for (var r = 0; r < rows.Count; r++)
         {
@@ -100,13 +103,9 @@ public sealed class RuleEngine(SqliteConnection connection, string tableName, Di
             for (var c = 0; c < rule.Components.Count; c++)
             {
                 var component = rule.Components[c];
-                var value = component.Benchmark.GetInputValue(scenario, row.Get);
-                if (value is null)
-                {
-                    componentResults[c] = double.NaN;
-                    skippedValues++;
-                    continue;
-                }
+                // Never null here: CheckInputs guarantees a field or constant for this scenario.
+                var value = component.Benchmark.GetInputValue(scenario, row.Get, out var wasNull)!;
+                if (wasNull) nullCounts[c]++;
                 componentResults[c] = component.Benchmark.GetResult(value) * component.Weight;
                 totalWeight += component.Weight;
                 resultSum += componentResults[c];
@@ -119,12 +118,69 @@ public sealed class RuleEngine(SqliteConnection connection, string tableName, Di
             update.ExecuteNonQuery();
         }
 
-        if (skippedValues > 0)
-            log.AddWarning($"Rule {rule.Name}, scenario {scenario}: {skippedValues} benchmark value(s) were missing (NULL without nullValue, " +
-                           "or no field/constant for this scenario) and were left out of the weighted average.");
+        ReportNullValues(rule, scenario, nullCounts);
 
         log.Trace("All rows processed, committing results.");
         transaction.Commit();
+    }
+
+    /// <summary>
+    /// Fails early, with a message that names the benchmark, when a benchmark has no input for this
+    /// scenario or reads a column that does not exist in the table.
+    /// </summary>
+    private void CheckInputs(Rule rule, string scenario, List<string> inputFields)
+    {
+        var withoutInput = rule.Components
+            .Select(c => c.Benchmark)
+            .Where(b => !b.FieldNamesPerScenario.ContainsKey(scenario) && !b.ConstantsPerScenario.ContainsKey(scenario))
+            .Select(b => b.Name)
+            .Distinct()
+            .ToList();
+        if (withoutInput.Count > 0)
+            throw new InvalidOperationException(
+                $"scenario {scenario}: benchmark(s) {string.Join(", ", withoutInput)} have neither a field nor a constant for this scenario.");
+
+        var columns = GetColumnNames();
+        var wanted = inputFields.Select(f => (field: f, benchmarks: rule.Benchmarks.Values
+            .Where(b => b.FieldNamesPerScenario.TryGetValue(scenario, out var bf) && string.Equals(bf, f, StringComparison.OrdinalIgnoreCase))
+            .Select(b => b.Name)));
+        if (rule.Filter.IsActive) wanted = wanted.Append((rule.Filter.FieldName!, ["filter"]));
+
+        var missing = wanted.Where(w => !columns.Contains(w.field)).ToList();
+        if (missing.Count > 0)
+            throw new InvalidOperationException(
+                $"scenario {scenario}: column(s) not found in table {tableName}: " +
+                string.Join("; ", missing.Select(m => $"{m.field} (used by {string.Join(", ", m.benchmarks)})")) +
+                ". Add the column to the geopackage or correct the field name in the configuration.");
+    }
+
+    private void ReportNullValues(Rule rule, string scenario, int[] nullCounts)
+    {
+        var reported = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        for (var c = 0; c < nullCounts.Length; c++)
+        {
+            var benchmark = rule.Components[c].Benchmark;
+            if (nullCounts[c] == 0 || !reported.Add(benchmark.Name)) continue;
+
+            var field = benchmark.FieldNamesPerScenario[scenario];
+            var effect = !double.IsNaN(benchmark.NullValue)
+                ? $"replaced by nullValue {benchmark.NullValue}"
+                : benchmark.ClassificationType == ClassificationType.Discrete
+                    ? "no nullValue, so verdict 0 (counted in the weights)"
+                    : $"no nullValue, so the result {rule.ResultColumn(scenario)} is NULL for these records";
+            log.AddWarning($"Rule {rule.Name}, scenario {scenario}: benchmark {benchmark.Name} has {nullCounts[c]} empty value(s) in {field}; {effect}.");
+        }
+    }
+
+    private HashSet<string> GetColumnNames()
+    {
+        var names = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        using var info = connection.CreateCommand();
+        info.CommandText = $"PRAGMA table_info({Quote(tableName)});";
+        using var reader = info.ExecuteReader();
+        while (reader.Read()) names.Add(reader.GetString(reader.GetOrdinal("name")));
+        if (names.Count == 0) throw new InvalidOperationException($"table {tableName} not found in the geopackage.");
+        return names;
     }
 
     private List<FeatureRow> ReadRows(SqliteTransaction transaction, Filter filter, List<string> inputFields)
