@@ -1,10 +1,10 @@
-namespace Klimaatatlas.Cli;
+namespace Klimaatatlas.Core;
 
 /// <summary>
 /// Remembers the last used configuration file, like My.Settings.Configfile in the old application.
 /// Stored per user: %APPDATA%\Klimaatatlas on Windows, ~/.config/Klimaatatlas on Linux and macOS.
 /// </summary>
-internal static class UserSettings
+public static class UserSettings
 {
     private static string FilePath => Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData, Environment.SpecialFolderOption.Create),

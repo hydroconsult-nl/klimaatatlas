@@ -2,8 +2,10 @@
   <Folder Name="/src/">
     <Project Path="src/Klimaatatlas.Cli/Klimaatatlas.Cli.csproj" />
     <Project Path="src/Klimaatatlas.Core/Klimaatatlas.Core.csproj" />
+    <Project Path="src/Klimaatatlas.Gui/Klimaatatlas.Gui.csproj" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/Klimaatatlas.Core.Tests/Klimaatatlas.Core.Tests.csproj" />
+    <Project Path="tests/Klimaatatlas.Gui.Tests/Klimaatatlas.Gui.Tests.csproj" />
   </Folder>
 </Solution>

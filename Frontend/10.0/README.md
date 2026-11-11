@@ -1,14 +1,39 @@
 # Klimaatatlas 2.0 – platformonafhankelijk (Windows, macOS, Linux)
 
 Dit is de rekenkern van de Klimaatatlas, overgezet van VB.NET / .NET Framework 4.8 (WinForms, Windows-only)
-naar C# / .NET 10. Het draait op Windows, macOS en Linux. Voor nu is er een command-line versie;
-een grafische interface (Avalonia) kan later bovenop `Klimaatatlas.Core` worden gebouwd.
+naar C# / .NET 10. Het draait op Windows, macOS en Linux, met een grafische interface (Avalonia)
+en een command-line versie die dezelfde rekenkern gebruiken.
 
 | Map | Inhoud |
 | --- | --- |
 | `src/Klimaatatlas.Core` | Configuratie lezen, maatlatten, rekenregels, schrijven naar de geopackage. Geen UI-code. |
+| `src/Klimaatatlas.Gui` | Desktop-app `Klimaatatlas` (Avalonia). |
 | `src/Klimaatatlas.Cli` | Command-line programma `klimaatatlas`. |
 | `tests/Klimaatatlas.Core.Tests` | Unit- en integratietests (o.a. op een test-geopackage). |
+| `tests/Klimaatatlas.Gui.Tests` | Headless tests van het hoofdvenster, inclusief een doorrekening. |
+
+## Desktop-app
+
+```bash
+dotnet run --project src/Klimaatatlas.Gui
+```
+
+* **Doorrekenen** – kies het configuratiebestand en eventueel een andere geopackage, vink de scenario's
+  en rekenregels aan en klik *Doorrekenen*. Fouten en waarschuwingen verschijnen in *Meldingen*
+  (de oude versie schreef ze alleen naar het diagnosebestand); *Diagnosebestand openen* toont `klimaatatlas.dia`.
+* **Maatlatten** – per rekenregel de maatlatten als kleurschaal (groen = oordeel 0, geel = 0,5,
+  rood = 1), met invoervelden per scenario, transformaties en wat er met lege waarden gebeurt.
+  Continue maatlatten tonen de echte knikpunten uit `valuesRange`.
+* **Rekenregels** – de formule per regel, het aandeel van elke maatlat en de uitvoerkolommen.
+
+Het laatst gebruikte configuratiebestand wordt bij het starten weer geopend (gedeeld met de CLI).
+Een configuratiebestand kan ook als argument worden meegegeven: `Klimaatatlas pad/naar/config.json`.
+
+Schermafbeeldingen van de drie tabbladen maak je met:
+
+```bash
+KLIMAATATLAS_SCREENSHOT_DIR=/een/map dotnet test tests/Klimaatatlas.Gui.Tests
+```
 
 ## Gebruik
 
@@ -68,6 +93,10 @@ Een losstaand programma (geen .NET-installatie nodig op de doelcomputer) maak je
 
 ```bash
 dotnet publish src/Klimaatatlas.Cli -c Release -r osx-arm64 --self-contained -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -o publish/osx-arm64
+```
+
+```bash
+dotnet publish src/Klimaatatlas.Gui -c Release -r osx-arm64 --self-contained -o publish/gui-osx-arm64
 ```
 
 Op macOS moet een niet-ondertekend programma de eerste keer worden vrijgegeven:
