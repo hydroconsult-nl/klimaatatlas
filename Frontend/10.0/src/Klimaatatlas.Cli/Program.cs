@@ -50,6 +50,60 @@ internal static class Program
             return 0;
         }
 
+        if (options.ConfigPath is not null) return Run(options);
+
+        // Started without a configuration file (double-click, F5 in Visual Studio, "dotnet run"):
+        // ask for it, like the old application that remembered the last used file.
+        if (Console.IsInputRedirected)
+        {
+            Console.Error.WriteLine("Fout: Geen configuratiebestand opgegeven.");
+            Console.Error.WriteLine("Gebruik: klimaatatlas <config.json>   (--help voor de opties)");
+            return 2;
+        }
+
+        var configPath = AskConfigPath();
+        if (configPath is null) return 2;
+        options.ConfigPath = configPath;
+        var exitCode = Run(options);
+
+        Console.Error.WriteLine();
+        Console.Error.Write("Druk op Enter om af te sluiten...");
+        Console.ReadLine();
+        return exitCode;
+    }
+
+    private static string? AskConfigPath()
+    {
+        var last = UserSettings.LastConfigPath;
+        if (last is not null && !File.Exists(last)) last = null;
+
+        Console.Error.WriteLine("Klimaatatlas - geen configuratiebestand opgegeven.");
+        Console.Error.WriteLine("(Tip: klimaatatlas <config.json>, of --help voor alle opties.)");
+        Console.Error.WriteLine();
+        while (true)
+        {
+            Console.Error.Write(last is null
+                ? "Pad naar het configuratiebestand (.json): "
+                : $"Pad naar het configuratiebestand [Enter = {last}]: ");
+            var input = Console.ReadLine();
+            if (input is null) return null; // end of input
+
+            // Paths dragged into a terminal come with quotes (Windows) or escaped spaces (macOS).
+            input = input.Trim().Trim('"', '\'').Replace("\\ ", " ");
+            if (input.Length == 0)
+            {
+                if (last is not null) return last;
+                continue;
+            }
+            if (input.StartsWith('~'))
+                input = Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), input[1..].TrimStart('/', '\\'));
+            if (File.Exists(input)) return Path.GetFullPath(input);
+            Console.Error.WriteLine($"Bestand niet gevonden: {input}");
+        }
+    }
+
+    private static int Run(Options options)
+    {
         var log = new DiagnosticsLog();
         log.EntryAdded += (level, message) =>
         {
@@ -72,6 +126,7 @@ internal static class Program
             Console.Error.WriteLine($"Fout bij lezen configuratie: {ex.Message}");
             return 2;
         }
+        UserSettings.LastConfigPath = config.SourcePath;
 
         if (options.ListOnly)
         {
@@ -189,7 +244,7 @@ internal sealed class ConsoleProgress : IProgress<ProgressReport>
 
 internal sealed class Options
 {
-    public string? ConfigPath { get; private set; }
+    public string? ConfigPath { get; set; }
     public string? GpkgPath { get; private set; }
     public string? TableName { get; private set; }
     public string? DiagnosticsPath { get; private set; }
@@ -232,8 +287,6 @@ internal sealed class Options
                     break;
             }
         }
-        if (o.ConfigPath is null && !o.ShowHelp && !o.ShowVersion)
-            throw new ArgumentException("Geen configuratiebestand opgegeven.");
         return o;
     }
 }

@@ -20,6 +20,10 @@ Dit doet hetzelfde als de knop *Uitvoeren* in de oude applicatie: de configurati
 voor alle scenario's doorrekenen en de resultaten (`{scenario}_{regel}` en `{scenario}_{resultsfield}`)
 in de tabel van de geopackage schrijven. Het diagnosebestand `klimaatatlas.dia` komt naast de config.
 
+Start je het programma zonder configuratiebestand (dubbelklikken, F5 in Visual Studio, `dotnet run`),
+dan vraagt het om het pad; je kunt het bestand ook in het venster slepen. Het laatst gebruikte bestand
+wordt onthouden en met Enter opnieuw gekozen.
+
 Handige opties (zie `klimaatatlas --help`):
 
 ```bash
