@@ -18,9 +18,12 @@ en een command-line versie die dezelfde rekenkern gebruiken.
 dotnet run --project src/Klimaatatlas.Gui
 ```
 
-* **Doorrekenen** – kies het configuratiebestand en eventueel een andere geopackage, vink de scenario's
-  en rekenregels aan en klik *Doorrekenen*. Fouten en waarschuwingen verschijnen in *Meldingen*
-  (de oude versie schreef ze alleen naar het diagnosebestand); *Diagnosebestand openen* toont `klimaatatlas.dia`.
+* **Doorrekenen** – kies het configuratiebestand, vink de scenario's en rekenregels aan en klik
+  *Doorrekenen*. De geopackage komt uit de configuratie en is niet te bewerken; met *Andere kiezen…*
+  gebruik je eenmalig een andere (bijv. een kopie, of op een Mac als de config een Windows-pad bevat),
+  wat duidelijk wordt aangegeven. Na afloop toont een groene of rode balk of het gelukt is; fouten en
+  waarschuwingen staan eronder in *Meldingen* (de oude versie schreef ze alleen naar het
+  diagnosebestand en meldde altijd "Rules successfully processed"). *Diagnosebestand openen* toont `klimaatatlas.dia`.
 * **Maatlatten** – per rekenregel de maatlatten als kleurschaal (groen = oordeel 0, geel = 0,5,
   rood = 1), met invoervelden per scenario, transformaties en wat er met lege waarden gebeurt.
   Continue maatlatten tonen de echte knikpunten uit `valuesRange`.

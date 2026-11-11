@@ -13,7 +13,23 @@ public sealed partial class MainViewModel(IFileDialogs dialogs, bool rememberCon
     private AtlasConfiguration? _configuration;
 
     [ObservableProperty] private string _configPath = "";
-    [ObservableProperty] private string _gpkgPath = "";
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsGpkgOverridden))]
+    private string _gpkgPath = "";
+
+    /// <summary>True when the user picked another geopackage than the one in the configuration.</summary>
+    public bool IsGpkgOverridden => _configuration is not null &&
+        !string.Equals(GpkgPath, _configuration.FeaturesDataset.Path, StringComparison.OrdinalIgnoreCase);
+
+    /// <summary>Outcome of the last run, shown as a banner: null = no run yet.</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasRunResult), nameof(RunFailed))]
+    private bool? _runSucceeded;
+
+    [ObservableProperty] private string _runSummary = "";
+
+    public bool HasRunResult => RunSucceeded is not null;
+    public bool RunFailed => RunSucceeded == false;
     [ObservableProperty] private string _tableName = "";
     [ObservableProperty] private RuleViewModel? _selectedRule;
 
@@ -63,6 +79,7 @@ public sealed partial class MainViewModel(IFileDialogs dialogs, bool rememberCon
         SelectedRule = Rules.FirstOrDefault();
 
         ProgressValue = 0;
+        RunSucceeded = null;
         ProgressText = $"Configuratie gelezen: {Rules.Count} regel(s), {Scenarios.Count} scenario('s).";
         if (!File.Exists(GpkgPath))
             AddLog(LogLevel.Warning, $"De geopackage uit de configuratie bestaat niet op deze computer: {GpkgPath}. Kies hierboven de juiste geopackage.");
@@ -74,6 +91,7 @@ public sealed partial class MainViewModel(IFileDialogs dialogs, bool rememberCon
     {
         OnPropertyChanged(nameof(HasConfiguration));
         OnPropertyChanged(nameof(Title));
+        OnPropertyChanged(nameof(IsGpkgOverridden));
         ExecuteCommand.NotifyCanExecuteChanged();
         ReloadCommand.NotifyCanExecuteChanged();
     }
@@ -101,6 +119,12 @@ public sealed partial class MainViewModel(IFileDialogs dialogs, bool rememberCon
     }
 
     [RelayCommand]
+    private void ResetGpkg()
+    {
+        if (_configuration is not null) GpkgPath = _configuration.FeaturesDataset.Path;
+    }
+
+    [RelayCommand]
     private async Task OpenDiagnosticsAsync()
     {
         if (DiagnosticsPath is not null && File.Exists(DiagnosticsPath))
@@ -124,6 +148,7 @@ public sealed partial class MainViewModel(IFileDialogs dialogs, bool rememberCon
 
         IsBusy = true;
         ProgressValue = 0;
+        RunSucceeded = null;
         LogEntries.Clear();
 
         var log = new DiagnosticsLog();
@@ -167,7 +192,11 @@ public sealed partial class MainViewModel(IFileDialogs dialogs, bool rememberCon
         ProgressText = ok
             ? $"Klaar: {rules.Count} regel(s) × {scenarios.Count} scenario('s) doorgerekend" + (warnings > 0 ? $", {warnings} waarschuwing(en)." : ".")
             : $"Klaar met {errors} fout(en). Zie de meldingen.";
-        AddLog(ok ? LogLevel.Message : LogLevel.Error, ProgressText);
+        RunSummary = ok
+            ? $"Rekenregels doorgerekend en weggeschreven naar {Path.GetFileName(gpkg)} ({rules.Count} regel(s) × {scenarios.Count} scenario('s))." +
+              (warnings > 0 ? $" {warnings} waarschuwing(en), zie hieronder." : "")
+            : $"Doorrekenen niet volledig gelukt: {errors} fout(en), zie hieronder. Geslaagde scenario's zijn weggeschreven; een mislukt scenario is teruggedraaid en de volgende scenario's van die regel zijn overgeslagen.";
+        RunSucceeded = ok;
         IsBusy = false;
     }
 

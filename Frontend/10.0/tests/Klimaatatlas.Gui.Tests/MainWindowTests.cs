@@ -81,8 +81,7 @@ public sealed class MainWindowTests : IDisposable
         }
     }
 
-    [AvaloniaFact]
-    public void ExecuteWritesResultsAndReportsWarnings()
+    private string CreateTestData(string field = "diepte")
     {
         var gpkg = Path.Combine(_dir, "test.gpkg");
         using (var con = new SqliteConnection($"Data Source={gpkg};Pooling=False"))
@@ -101,15 +100,17 @@ public sealed class MainWindowTests : IDisposable
               "features_dataset": { "id": "wv", "path": "test.gpkg", "tablename": "wv", "fields": [] },
               "rules": [ { "name": "r",
                 "benchmarks": [ { "name": "d", "classification": "continuous",
-                  "fieldname": [ {"scenario":"A","field":"diepte"} ],
+                  "fieldname": [ {"scenario":"A","field":"FIELD"} ],
                   "valuesRange": [ {"value":0,"verdict":0}, {"value":2,"verdict":1} ] } ],
                 "components": [ { "benchmark": "d", "weight": 1, "resultsfield": "r_d" } ] } ] }
-            """);
+            """.Replace("FIELD", field));
+        return config;
+    }
 
-        var (_, vm) = Open(config);
+    private static void RunAndWait(MainViewModel vm)
+    {
         Assert.True(vm.ExecuteCommand.CanExecute(null));
         vm.ExecuteCommand.Execute(null);
-
         var deadline = DateTime.UtcNow.AddSeconds(30);
         while ((vm.IsBusy || vm.ExecuteCommand.IsRunning) && DateTime.UtcNow < deadline)
         {
@@ -117,18 +118,74 @@ public sealed class MainWindowTests : IDisposable
             Thread.Sleep(10);
         }
         Dispatcher.UIThread.RunJobs();
-
         Assert.False(vm.IsBusy);
+    }
+
+    private static void SaveScreenshot(Window window, string name)
+    {
+        var dir = Environment.GetEnvironmentVariable("KLIMAATATLAS_SCREENSHOT_DIR");
+        Dispatcher.UIThread.RunJobs();
+        AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+        Dispatcher.UIThread.RunJobs();
+        if (dir is not null) window.CaptureRenderedFrame()!.Save(Path.Combine(dir, name));
+    }
+
+    [AvaloniaFact]
+    public void ExecuteWritesResultsAndShowsSuccessBanner()
+    {
+        var config = CreateTestData();
+        var (window, vm) = Open(config);
+        Assert.False(vm.HasRunResult);
+
+        RunAndWait(vm);
+        SaveScreenshot(window, "klaar-gelukt.png");
+
+        Assert.True(vm.RunSucceeded);
+        Assert.Contains("weggeschreven naar test.gpkg", vm.RunSummary);
         Assert.Equal(100, vm.ProgressValue);
         Assert.StartsWith("Klaar: 1 regel(s)", vm.ProgressText);
+        Assert.DoesNotContain(vm.LogEntries, e => e.IsError);
         Assert.Contains(vm.LogEntries, e => e.IsWarning && e.Message.Contains("benchmark d has 1 empty value(s)"));
         Assert.True(File.Exists(Path.Combine(_dir, "klimaatatlas.dia")));
 
-        using var check = new SqliteConnection($"Data Source={gpkg};Pooling=False");
+        using var check = new SqliteConnection($"Data Source={Path.Combine(_dir, "test.gpkg")};Pooling=False");
         check.Open();
         using var q = check.CreateCommand();
         q.CommandText = "SELECT A_r FROM wv WHERE fid = 1";
         Assert.Equal(0.5, (double)q.ExecuteScalar()!, 9);
+    }
+
+    [AvaloniaFact]
+    public void FailedRunShowsErrorBanner()
+    {
+        var (window, vm) = Open(CreateTestData(field: "bestaatniet"));
+        RunAndWait(vm);
+        SaveScreenshot(window, "klaar-fouten.png");
+
+        Assert.False(vm.RunSucceeded);
+        Assert.True(vm.RunFailed);
+        Assert.Contains(vm.LogEntries, e => e.IsError && e.Message.Contains("bestaatniet (used by d)"));
+    }
+
+    [AvaloniaFact]
+    public void GeopackageIsReadOnlyAndOverrideIsVisible()
+    {
+        var config = CreateTestData();
+        var (window, vm) = Open(config);
+
+        var gpkgBox = window.GetVisualDescendants().OfType<TextBox>().Single(t => t.Text == vm.GpkgPath);
+        Assert.True(gpkgBox.IsReadOnly);
+        Assert.False(vm.IsGpkgOverridden);
+
+        var copy = Path.Combine(_dir, "kopie.gpkg");
+        File.Copy(Path.Combine(_dir, "test.gpkg"), copy);
+        vm.GpkgPath = copy; // what "Andere kiezen…" does after the file picker
+        Assert.True(vm.IsGpkgOverridden);
+        SaveScreenshot(window, "afwijkende-geopackage.png");
+
+        vm.ResetGpkgCommand.Execute(null);
+        Assert.False(vm.IsGpkgOverridden);
+        Assert.Equal(Path.Combine(_dir, "test.gpkg"), vm.GpkgPath);
     }
 
     [Fact]
