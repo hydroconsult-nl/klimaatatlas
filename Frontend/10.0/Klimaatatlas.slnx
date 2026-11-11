@@ -1,0 +1,9 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Klimaatatlas.Cli/Klimaatatlas.Cli.csproj" />
+    <Project Path="src/Klimaatatlas.Core/Klimaatatlas.Core.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Klimaatatlas.Core.Tests/Klimaatatlas.Core.Tests.csproj" />
+  </Folder>
+</Solution>
